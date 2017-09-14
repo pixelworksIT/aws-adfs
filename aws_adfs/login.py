@@ -19,8 +19,9 @@ from . import role_chooser
 )
 @click.option(
     '--region',
-    help='The default AWS region that this script will connect\n'
-         'to for all API calls',
+    help='The default AWS region that this script will \n'
+         'connect to for all API calls.\n'
+         'This is mandatory when connecting to ADFS in China region.',
 )
 @click.option(
     '--ssl-verification/--no-ssl-verification',
@@ -121,7 +122,12 @@ def login(
     # Note, too, that if a SessionNotOnOrAfter attribute is also defined,
     # then the lesser value of the two attributes, SessionDuration or SessionNotOnOrAfter,
     # establishes the maximum duration of the console session.
-    conn = boto3.client('sts', config=client.Config(signature_version=botocore.UNSIGNED))
+    if region and region.startswith("cn-"):
+        conn = boto3.client('sts', region_name=region, \
+            endpoint_url="https://sts." + region + ".amazonaws.com.cn", \
+            config=client.Config(signature_version=botocore.UNSIGNED))
+    else:
+        conn = boto3.client('sts', config=client.Config(signature_version=botocore.UNSIGNED))
     aws_session_token = conn.assume_role_with_saml(
         RoleArn=config.role_arn,
         PrincipalArn=principal_arn,

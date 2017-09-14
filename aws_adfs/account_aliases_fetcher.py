@@ -9,8 +9,13 @@ _account_without_alias_pattern = re.compile("Account: +\(?([0-9]+)\)?")
 
 
 def account_aliases(session, username, password, auth_method, saml_response, config):
+    if config.region and config.region.startswith("cn-"):
+        saml_signin_url = "https://signin.amazonaws.cn/saml"
+    else:
+        saml_signin_url = "https://signin.aws.amazon.com/saml"
+
     alias_response = session.post(
-        'https://signin.aws.amazon.com/saml',
+        saml_signin_url,
         verify=config.ssl_verification,
         headers={
             'Accept-Language': 'en',
@@ -34,7 +39,7 @@ def account_aliases(session, username, password, auth_method, saml_response, con
         * status: {}
         * headers: {}
         * body: {}
-    '''.format('https://signin.aws.amazon.com/saml',
+    '''.format(saml_signin_url,
                alias_response.request.headers,
                alias_response.status_code,
                alias_response.headers,
