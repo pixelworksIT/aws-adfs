@@ -19,9 +19,10 @@ from . import role_chooser
 )
 @click.option(
     '--region',
+    required=True,
     help='The default AWS region that this script will \n'
          'connect to for all API calls.\n'
-         'This is mandatory when connecting to ADFS in China region.',
+         'This is mandatory.',
 )
 @click.option(
     '--ssl-verification/--no-ssl-verification',
@@ -127,7 +128,8 @@ def login(
             endpoint_url="https://sts." + region + ".amazonaws.com.cn", \
             config=client.Config(signature_version=botocore.UNSIGNED))
     else:
-        conn = boto3.client('sts', config=client.Config(signature_version=botocore.UNSIGNED))
+        conn = boto3.client('sts', region_name=region, \
+            config=client.Config(signature_version=botocore.UNSIGNED))
     aws_session_token = conn.assume_role_with_saml(
         RoleArn=config.role_arn,
         PrincipalArn=principal_arn,
